@@ -102,7 +102,6 @@ def generate_quiz_questions(topic, difficulty, num_questions,question_types):
         print(f"An unexpected error occurred: {e}")
         return None
 
-# In quiz_generator.py
 
 def get_ai_feedback(correct_answers, wrong_answers):
     """
@@ -137,6 +136,81 @@ def get_ai_feedback(correct_answers, wrong_answers):
     except Exception as e:
         print(f"An error occurred while getting AI feedback: {e}")
         return "Sorry, an error occurred while generating feedback."
+
+
+
+def get_long_term_feedback(all_correct_answers, all_wrong_answers):
+    """
+    Analyzes a user's ENTIRE history to provide balanced, long-term feedback.
+    """
+    model = genai.GenerativeModel('gemini-1.5-flash-latest')
+
+    correct_str = json.dumps(all_correct_answers, indent=2)
+    wrong_str = json.dumps(all_wrong_answers, indent=2)
+
+    prompt = f"""
+        You are an expert data analyst and programming tutor. A student has just finished a quiz, and you are analyzing their entire performance history to give them personalized feedback.
+
+        **Address the user directly using 'you' and 'your'.**
+
+        STRENGTHS (based on questions they consistently answer correctly):
+        {correct_str}
+
+        WEAKNESSES (based on questions they consistently answer incorrectly):
+        {wrong_str}
+
+        Based on this complete history, provide a concise, balanced summary under 90 words. Start by praising **their** specific, recurring strengths. Then, identify the 1-2 most critical concepts **they** need to review to improve.
+        """
+
+    try:
+        response = model.generate_content(prompt)
+        return response.text
+    except Exception as e:
+        print(f"An error occurred while getting long-term feedback: {e}")
+        return "Sorry, an error occurred while analyzing the performance history."
+
+
+def check_for_duplicates(new_question, existing_questions):
+    """
+    Uses AI to check if a new question is a semantic duplicate of any existing ones.
+    """
+    model = genai.GenerativeModel('gemini-1.5-flash-latest')
+
+    # We only need the text of the questions for comparison
+    new_question_text = new_question.get('question')
+    existing_questions_text = [q.get('question') for q in existing_questions]
+
+    prompt = f"""
+    You are a quality assurance expert for a technical quiz platform. Compare the "New Question" to the "List of Existing Questions".
+
+    Your task is to determine if the New Question is a semantic duplicate of any question in the existing list. A duplicate is a question that tests the exact same core knowledge, even if worded differently.
+
+    New Question:
+    "{new_question_text}"
+
+    List of Existing Questions:
+    {json.dumps(existing_questions_text, indent=2)}
+
+    Respond ONLY with a single JSON object with the following format:
+    {{
+      "is_duplicate": boolean,
+      "duplicate_of": "text of the duplicate question or null",
+      "reason": "brief explanation"
+    }}
+    """
+
+    try:
+        response = model.generate_content(prompt)
+        # Add robust cleaning for the JSON response
+        cleaned_json_string = response.text.strip()
+        start = cleaned_json_string.find('{')
+        end = cleaned_json_string.rfind('}') + 1
+        result = json.loads(cleaned_json_string[start:end])
+        return result
+    except Exception as e:
+        print(f"An error occurred during duplicate check: {e}")
+        # Default to assuming it's not a duplicate if the check fails
+        return {"is_duplicate": False, "duplicate_of": None, "reason": "AI check failed."}
 
 # --- Let's Test It! ---
 if __name__ == "__main__":
