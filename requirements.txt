@@ -84,6 +84,7 @@ Pygments==2.18.0
 PyMsgBox==1.0.9
 pyparsing==3.1.4
 pyperclip==1.9.0
+pypiwin32==223
 PyQt5==5.15.10
 PyQt5-Qt5==5.15.2
 PyQt5_sip==12.15.0
@@ -97,7 +98,6 @@ python-lsp-jsonrpc==1.1.2
 python-lsp-server==1.12.0
 pyttsx3==2.98
 pytweening==1.2.0
-pywin32==308
 requests==2.32.3
 rich==13.8.1
 rsa==4.9.1
