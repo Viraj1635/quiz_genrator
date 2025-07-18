@@ -38,19 +38,23 @@ def generate_quiz_questions(topic, difficulty, num_questions=5):
     """
     # Create an instance of the Gemini Pro model
     model = genai.GenerativeModel('gemini-1.5-flash-latest')
+    
+    topics_string = ", ".join(topic)
 
     # This is the most important part: The Prompt!
     # We instruct the model to return a valid JSON object.
     prompt_template = f"""
     You are an expert technical interviewer.
-    Your task is to generate {num_questions} multiple-choice questions for a quiz on the topic of {topic}.
-    The difficulty level for these questions should be {difficulty}.
+    Your task is to generate {num_questions} total multiple-choice questions covering the following topics: {topics_string}.
+    The difficulty for all questions should be {difficulty}.
+    Distribute the questions as evenly as possible across all topics.
 
-    Each question must have:
+    Each question object MUST have:
     1. A 'question' text.
     2. An 'options' list with 4 possible answers.
-    3. A 'correct_answer' field indicating the correct option.
-    4. A brief 'explanation' for why the answer is correct.
+    3. A 'correct_answer' field.
+    4. An 'explanation' for the answer.
+    5. A 'topic' field indicating which topic the question belongs to.
 
     IMPORTANT: Format your entire output as a single, valid JSON array of objects. Do not include any text or formatting outside of the JSON array.
     
@@ -64,7 +68,8 @@ def generate_quiz_questions(topic, difficulty, num_questions=5):
             "The process of closing a file"
         ],
         "correct_answer": "A nested function that remembers the enclosing scope's variables",
-        "explanation": "A closure is a function object that has access to variables in its enclosing lexical scope, even when the enclosing scope has finished execution."
+        "explanation": "A closure is a function object that has access to variables in its enclosing lexical scope, even when the enclosing scope has finished execution.",
+        "topic": "Python"
     }}
     """
     
