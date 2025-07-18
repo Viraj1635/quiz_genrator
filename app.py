@@ -22,6 +22,8 @@ def handle_quiz_generation():
     topic = data.get('topic')
     difficulty = data.get('difficulty')
     num_questions = data.get('num_questions', 5) # Default to 5 questions
+    question_types = data.get('question_types', ['mcq'])
+
 
     if not all([topic, difficulty]):
         return jsonify({"error": "Missing 'topic' or 'difficulty' in request"}), 400
@@ -33,7 +35,8 @@ def handle_quiz_generation():
         questions = generate_quiz_questions(
             topic=topic,
             difficulty=difficulty,
-            num_questions=num_questions
+            num_questions=num_questions,
+            question_types=question_types
         )
 
         if questions:

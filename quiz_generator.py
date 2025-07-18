@@ -24,7 +24,7 @@ except Exception as e:
 
 # --- The Core Function ---
 
-def generate_quiz_questions(topic, difficulty, num_questions=5):
+def generate_quiz_questions(topic, difficulty, num_questions,question_types):
     """
     Generates a set of unique quiz questions using the Gemini API.
 
@@ -40,37 +40,38 @@ def generate_quiz_questions(topic, difficulty, num_questions=5):
     model = genai.GenerativeModel('gemini-1.5-flash-latest')
     
     topics_string = ", ".join(topic)
+    types_str = ", ".join(question_types)
 
     # This is the most important part: The Prompt!
     # We instruct the model to return a valid JSON object.
     prompt_template = f"""
-    You are an expert technical interviewer.
-    Your task is to generate {num_questions} total multiple-choice questions covering the following topics: {topics_string}.
+    You are an expert technical interviewer.Your most important task is to generate questions in various formats and to include a "type" field in every single object.
+    Your task is to generate {num_questions} total questions covering the following topics: {topics_string}.
     The difficulty for all questions should be {difficulty}.
+    The questions should be {types_str}.
     Distribute the questions as evenly as possible across all topics.
 
-    Each question object MUST have:
-    1. A 'question' text.
-    2. An 'options' list with 4 possible answers.
-    3. A 'correct_answer' field.
-    4. An 'explanation' for the answer.
-    5. A 'topic' field indicating which topic the question belongs to.
+    Generate a JSON array of question objects. Each object MUST have a "type" field. Adhere strictly to the following formats:
+
+    1.  For "mcq" type:
+        {{
+          "type": "mcq", "topic": "...", "question": "...", "options": ["...", "...", "...", "..."], "correct_answer": "...", "explanation": "..."
+        }}
+
+    2.  For "true_false" type:
+        {{
+          "type": "true_false", "topic": "...", "question": "...", "options": ["True", "False"], "correct_answer": "...", "explanation": "..."
+        }}
+
+    3.  For "fill_in_the_blank" type:
+        {{
+          "type": "fill_in_the_blank", "topic": "...", "question_parts": ["start of sentence ", " end of sentence."], "correct_answer": "word", "explanation": "..."
+        }}
+
+    Ensure the final output is only a single, valid JSON array.
 
     IMPORTANT: Format your entire output as a single, valid JSON array of objects. Do not include any text or formatting outside of the JSON array.
     
-    Example format for a single question object:
-    {{
-        "question": "What is a closure in Python?",
-        "options": [
-            "A function with no arguments",
-            "A nested function that remembers the enclosing scope's variables",
-            "A decorator for a class",
-            "The process of closing a file"
-        ],
-        "correct_answer": "A nested function that remembers the enclosing scope's variables",
-        "explanation": "A closure is a function object that has access to variables in its enclosing lexical scope, even when the enclosing scope has finished execution.",
-        "topic": "Python"
-    }}
     """
     
     print("--- Sending Prompt to Gemini ---")
@@ -80,10 +81,16 @@ def generate_quiz_questions(topic, difficulty, num_questions=5):
         
         # The response text might have markdown formatting ` ```json ... ``` `
         # We need to clean it to get the pure JSON.
-        cleaned_json_string = response.text.strip().replace('```json', '').replace('```', '')
+        
+        # cleaned_json_string = response.text.strip().replace('```json', '').replace('```', '')
+        
+        cleaned_json_string = response.text.strip()
+        start = cleaned_json_string.find('[')
+        end = cleaned_json_string.rfind(']') + 1
+        questions = json.loads(cleaned_json_string[start:end])
         
         # Parse the JSON string into a Python list
-        questions = json.loads(cleaned_json_string)
+        # questions = json.loads(cleaned_json_string)
         return questions
 
     except json.JSONDecodeError:
