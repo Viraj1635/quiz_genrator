@@ -61,8 +61,8 @@ def handle_feedback_request():
     correct_answers = data.get('correct_answers')
     wrong_answers = data.get('wrong_answers')
 
-    if not all([correct_answers, wrong_answers]):
-        return jsonify({"error": "Missing 'correct_answers' or 'wrong_answers' in request"}), 400
+    # if not all([correct_answers, wrong_answers]):
+    #     return jsonify({"error": "Missing 'correct_answers' or 'wrong_answers' in request"}), 400
     
     # 2. Handle the edge case of a perfect score
     if not wrong_answers:
