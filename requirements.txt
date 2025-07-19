@@ -6,3 +6,5 @@ python-dotenv
 easyocr
 torch
 torchvision
+PyMuPDF
+Pillow
