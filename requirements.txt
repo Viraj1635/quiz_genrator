@@ -3,3 +3,6 @@ gunicorn
 google-generativeai
 Flask-Cors
 python-dotenv
+easyocr
+torch
+torchvision

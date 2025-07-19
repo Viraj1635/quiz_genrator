@@ -5,26 +5,19 @@ from pprint import pprint
 from dotenv import load_dotenv
 
 
-# --- Configuration ---
-# It's best practice to store your API key as an environment variable
-# For the hackathon, you can hardcode it, but this is better:
-# os.environ['GOOGLE_API_KEY'] = 'YOUR_API_KEY_HERE'
 
 try:
-    # Or, get it from your environment variables
+
     api_key = 'AIzaSyDZPWZPNXtfpA3SWXnnBvTAk-_ieuvcb60'
-    if not api_key:
-        # Replace this with your actual API key if not using environment variables
-        api_key = 'AIzaSyDZPWZPNXtfpA3SWXnnBvTAk-_ieuvcb60'
-        print("Warning: API key is hardcoded. It's better to use environment variables.")
+    # if not api_key:
+    #     api_key = 'AIzaSyDZPWZPNXtfpA3SWXnnBvTAk-_ieuvcb60'
+    #     print("Warning: API key is hardcoded. It's better to use environment variables.")
     
     genai.configure(api_key=api_key)
 except Exception as e:
     print(f"Error during configuration: {e}")
-    # Exit if configuration fails
     exit()
 
-# --- The Core Function ---
 
 def generate_quiz_questions(topic, difficulty, num_questions,question_types):
     """
@@ -38,14 +31,11 @@ def generate_quiz_questions(topic, difficulty, num_questions,question_types):
     Returns:
         list: A list of question dictionaries, or None if an error occurs.
     """
-    # Create an instance of the Gemini Pro model
     model = genai.GenerativeModel('gemini-1.5-flash-latest')
     
     topics_string = ", ".join(topic)
     types_str = ", ".join(question_types)
 
-    # This is the most important part: The Prompt!
-    # We instruct the model to return a valid JSON object.
     prompt_template = f"""
     You are an expert technical interviewer.Your most important task is to generate questions in various formats and to include a "type" field in every single object.
     Your task is to generate {num_questions} total questions covering the following topics: {topics_string}.
@@ -78,21 +68,14 @@ def generate_quiz_questions(topic, difficulty, num_questions,question_types):
     
     print("--- Sending Prompt to Gemini ---")
     try:
-        # Generate the content
         response = model.generate_content(prompt_template)
         
-        # The response text might have markdown formatting ` ```json ... ``` `
-        # We need to clean it to get the pure JSON.
-        
-        # cleaned_json_string = response.text.strip().replace('```json', '').replace('```', '')
         
         cleaned_json_string = response.text.strip()
         start = cleaned_json_string.find('[')
         end = cleaned_json_string.rfind(']') + 1
         questions = json.loads(cleaned_json_string[start:end])
         
-        # Parse the JSON string into a Python list
-        # questions = json.loads(cleaned_json_string)
         return questions
 
     except json.JSONDecodeError:
@@ -111,7 +94,6 @@ def check_for_duplicates(new_question, existing_questions):
     """
     model = genai.GenerativeModel('gemini-1.5-flash-latest')
 
-    # We only need the text of the questions for comparison
     new_question_text = new_question.get('question')
     existing_questions_text = [q.get('question') for q in existing_questions]
 
@@ -136,7 +118,6 @@ def check_for_duplicates(new_question, existing_questions):
 
     try:
         response = model.generate_content(prompt)
-        # Add robust cleaning for the JSON response
         cleaned_json_string = response.text.strip()
         start = cleaned_json_string.find('{')
         end = cleaned_json_string.rfind('}') + 1
@@ -144,7 +125,6 @@ def check_for_duplicates(new_question, existing_questions):
         return result
     except Exception as e:
         print(f"An error occurred during duplicate check: {e}")
-        # Default to assuming it's not a duplicate if the check fails
         return {"is_duplicate": False, "duplicate_of": None, "reason": "AI check failed."}
 
 
@@ -175,25 +155,20 @@ def generate_questions_from_text(full_text, num_questions, difficulty, question_
     try:
         response = model.generate_content(prompt)
         
-        # Clean and parse the JSON response
         cleaned_json_string = response.text.strip()
         start_index = cleaned_json_string.find('[')
         end_index = cleaned_json_string.rfind(']') + 1
         
         if start_index == -1 or end_index == 0:
-            # Let the calling function know that parsing failed
             raise json.JSONDecodeError("No JSON array found in the AI response.", cleaned_json_string, 0)
             
         questions = json.loads(cleaned_json_string[start_index:end_index])
         return questions
 
     except Exception as e:
-        # Pass the exception up to the API endpoint to handle
         print(f"Error in AI generation: {e}")
-        # Re-raise the exception so the API layer knows something went wrong
         raise
 
-# --- Let's Test It! ---
 if __name__ == "__main__":
     quiz_topic = "Java OOP"
     quiz_difficulty = "Medium"
@@ -202,5 +177,4 @@ if __name__ == "__main__":
     
     if generated_questions:
         print("\n--- Successfully Generated Quiz Questions ---")
-        # pprint is used for "pretty printing" the output
         pprint(generated_questions)

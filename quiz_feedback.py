@@ -10,7 +10,6 @@ def get_ai_feedback(correct_answers, wrong_answers):
     """
     model = genai.GenerativeModel('gemini-1.5-flash-latest')
     
-    # 1. --- Group all answers by topic ---
     performance_by_topic = {}
 
     for answer in correct_answers + wrong_answers:
@@ -26,14 +25,12 @@ def get_ai_feedback(correct_answers, wrong_answers):
         topic = answer.get('topic', 'General')
         performance_by_topic[topic]['wrong'].append(answer)
 
-    # 2. --- Generate feedback for each topic ---
     topic_feedback_results = {}
 
     for topic, performance in performance_by_topic.items():
         correct_str = json.dumps(performance['correct'], indent=2)
         wrong_str = json.dumps(performance['wrong'], indent=2)
 
-        # New prompt, focused on a single topic
         prompt = f"""
         You are a helpful AI teaching assistant. A student just finished a quiz section on the topic of: **{topic}**.
 
@@ -55,7 +52,6 @@ def get_ai_feedback(correct_answers, wrong_answers):
             print(f"An error occurred while getting feedback for {topic}: {e}")
             topic_feedback_results[topic] = "Sorry, an error occurred while generating feedback for this topic."
 
-    # 3. --- Return the dictionary of all feedback ---
     return topic_feedback_results
 
 def get_long_term_feedback(all_correct_answers, all_wrong_answers):
