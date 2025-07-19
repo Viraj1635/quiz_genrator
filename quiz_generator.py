@@ -8,7 +8,7 @@ from dotenv import load_dotenv
 
 try:
 
-    api_key = 'AIzaSyDZPWZPNXtfpA3SWXnnBvTAk-_ieuvcb60'
+    api_key = 'AIzaSyD4ThRw3MzTnmROOlcPeWiRA5Ns_q1A9Ds'
     # if not api_key:
     #     api_key = 'AIzaSyDZPWZPNXtfpA3SWXnnBvTAk-_ieuvcb60'
     #     print("Warning: API key is hardcoded. It's better to use environment variables.")
