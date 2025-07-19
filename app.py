@@ -2,7 +2,8 @@ import os
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 
-from quiz_generator import generate_quiz_questions, get_ai_feedback, get_long_term_feedback, check_for_duplicates
+from quiz_generator import generate_quiz_questions, check_for_duplicates
+from quiz_feedback import get_ai_feedback, get_long_term_feedback
 
 app = Flask(__name__)
 
