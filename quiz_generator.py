@@ -37,7 +37,7 @@ def generate_quiz_questions(topic, difficulty, num_questions,question_types):
         list: A list of question dictionaries, or None if an error occurs.
     """
     # Create an instance of the Gemini Pro model
-    model = genai.GenerativeModel('gemini-2.5-flash-lite')
+    model = genai.GenerativeModel('gemini-1.5-flash-latest')
     
     topics_string = ", ".join(topic)
     types_str = ", ".join(question_types)
@@ -107,7 +107,7 @@ def check_for_duplicates(new_question, existing_questions):
     """
     Uses AI to check if a new question is a semantic duplicate of any existing ones.
     """
-    model = genai.GenerativeModel('gemini-2.5-flash-lite')
+    model = genai.GenerativeModel('gemini-1.5-flash-latest')
 
     # We only need the text of the questions for comparison
     new_question_text = new_question.get('question')

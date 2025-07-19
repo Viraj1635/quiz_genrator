@@ -7,7 +7,7 @@ def get_ai_feedback(correct_answers, wrong_answers):
     """
     Generates CONCISE and BALANCED feedback based on quiz performance.
     """
-    model = genai.GenerativeModel('gemini-2.5-flash-lite')
+    model = genai.GenerativeModel('gemini-1.5-flash-latest')
 
     # Convert lists to JSON strings for the prompt
     correct_str = json.dumps(correct_answers, indent=2)
@@ -42,7 +42,7 @@ def get_long_term_feedback(all_correct_answers, all_wrong_answers):
     """
     Analyzes a user's ENTIRE history to provide balanced, long-term feedback.
     """
-    model = genai.GenerativeModel('gemini-2.5-flash-lite')
+    model = genai.GenerativeModel('gemini-1.5-flash-latest')
 
     correct_str = json.dumps(all_correct_answers, indent=2)
     wrong_str = json.dumps(all_wrong_answers, indent=2)
