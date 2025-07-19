@@ -2,6 +2,8 @@ import os
 import json
 import google.generativeai as genai
 from pprint import pprint
+from dotenv import load_dotenv
+
 
 # --- Configuration ---
 # It's best practice to store your API key as an environment variable
@@ -10,10 +12,10 @@ from pprint import pprint
 
 try:
     # Or, get it from your environment variables
-    api_key = 'AIzaSyBVECKoeu1j3ZH3kwC2Qi0B8txPrzjNibw'
+    api_key = 'AIzaSyDZPWZPNXtfpA3SWXnnBvTAk-_ieuvcb60'
     if not api_key:
         # Replace this with your actual API key if not using environment variables
-        api_key = 'AIzaSyBVECKoeu1j3ZH3kwC2Qi0B8txPrzjNibw'
+        api_key = 'AIzaSyDZPWZPNXtfpA3SWXnnBvTAk-_ieuvcb60'
         print("Warning: API key is hardcoded. It's better to use environment variables.")
     
     genai.configure(api_key=api_key)
@@ -144,6 +146,52 @@ def check_for_duplicates(new_question, existing_questions):
         print(f"An error occurred during duplicate check: {e}")
         # Default to assuming it's not a duplicate if the check fails
         return {"is_duplicate": False, "duplicate_of": None, "reason": "AI check failed."}
+
+
+def generate_questions_from_text(full_text, num_questions, difficulty, question_types):
+    """
+    Takes extracted text and quiz options, then calls the AI to generate questions.
+    """
+    model = genai.GenerativeModel('gemini-1.5-flash-latest')
+
+    types_str = ", ".join(question_types)
+    if "all_mixed" in types_str:
+        types_str = "a mix of mcq, true_false, and fill_in_the_blank"
+
+    prompt = f"""
+    You are an expert instructor. Read the following document text and generate {num_questions} questions of {difficulty} difficulty.
+    The question types should be {types_str}.
+
+    The questions MUST be based ONLY on the information provided in the document text below.
+
+    DOCUMENT TEXT:
+    ---
+    {full_text}
+    ---
+
+    Respond ONLY with a single, valid JSON array of question objects. Each object must have a "type" field and follow the specific formats for mcq, true_false, or fill_in_the_blank.
+    """
+
+    try:
+        response = model.generate_content(prompt)
+        
+        # Clean and parse the JSON response
+        cleaned_json_string = response.text.strip()
+        start_index = cleaned_json_string.find('[')
+        end_index = cleaned_json_string.rfind(']') + 1
+        
+        if start_index == -1 or end_index == 0:
+            # Let the calling function know that parsing failed
+            raise json.JSONDecodeError("No JSON array found in the AI response.", cleaned_json_string, 0)
+            
+        questions = json.loads(cleaned_json_string[start_index:end_index])
+        return questions
+
+    except Exception as e:
+        # Pass the exception up to the API endpoint to handle
+        print(f"Error in AI generation: {e}")
+        # Re-raise the exception so the API layer knows something went wrong
+        raise
 
 # --- Let's Test It! ---
 if __name__ == "__main__":

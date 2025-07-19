@@ -2,41 +2,61 @@ import os
 import json
 import google.generativeai as genai
 from pprint import pprint
+import time 
 
 def get_ai_feedback(correct_answers, wrong_answers):
     """
-    Generates CONCISE and BALANCED feedback based on quiz performance.
+    Generates CONCISE and BALANCED feedback for each topic in the quiz.
     """
     model = genai.GenerativeModel('gemini-1.5-flash-latest')
+    
+    # 1. --- Group all answers by topic ---
+    performance_by_topic = {}
 
-    # Convert lists to JSON strings for the prompt
-    correct_str = json.dumps(correct_answers, indent=2)
-    wrong_str = json.dumps(wrong_answers, indent=2)
+    for answer in correct_answers + wrong_answers:
+        topic = answer.get('topic', 'General')
+        if topic not in performance_by_topic:
+            performance_by_topic[topic] = {'correct': [], 'wrong': []}
 
-    # New prompt for concise, balanced feedback
-    prompt = f"""
-    You are a helpful AI teaching assistant. A student has just finished a quiz.
+    for answer in correct_answers:
+        topic = answer.get('topic', 'General')
+        performance_by_topic[topic]['correct'].append(answer)
 
-    Here are the questions they answered CORRECTLY:
-    {correct_str}
+    for answer in wrong_answers:
+        topic = answer.get('topic', 'General')
+        performance_by_topic[topic]['wrong'].append(answer)
 
-    Here are the questions they answered INCORRECTLY:
-    {wrong_str}
+    # 2. --- Generate feedback for each topic ---
+    topic_feedback_results = {}
 
-    Your task is to provide feedback that is both encouraging and helpful. Follow these rules:
-    1.  Acknowledge their strengths based on the topics of the correct answers.
-    2.  Briefly point out 1-2 topics they could improve on, based on the wrong answers.
-    3.  Keep the entire feedback short, positive, and under 75 words.
-    """
-    print("--- Sending Prompt to Gemini ---")
+    for topic, performance in performance_by_topic.items():
+        correct_str = json.dumps(performance['correct'], indent=2)
+        wrong_str = json.dumps(performance['wrong'], indent=2)
 
-    try:
-        response = model.generate_content(prompt)
-        return response.text
-    except Exception as e:
-        print(f"An error occurred while getting AI feedback: {e}")
-        return "Sorry, an error occurred while generating feedback."
+        # New prompt, focused on a single topic
+        prompt = f"""
+        You are a helpful AI teaching assistant. A student just finished a quiz section on the topic of: **{topic}**.
 
+        Here are the questions they answered CORRECTLY on this topic:
+        {correct_str}
+
+        Here are the questions they answered INCORRECTLY on this topic:
+        {wrong_str}
+
+        Your task is to provide a single, concise sentence of feedback (under 25 words) about their performance ON THIS TOPIC ONLY. Address the user directly. If they got everything right, praise them. If they made mistakes, gently point out the sub-topic to review.
+        """
+        
+        try:
+            print(f"--- Sending prompt to Gemini for topic: {topic} ---")
+            response = model.generate_content(prompt)
+            topic_feedback_results[topic] = response.text.strip()
+            time.sleep(1)
+        except Exception as e:
+            print(f"An error occurred while getting feedback for {topic}: {e}")
+            topic_feedback_results[topic] = "Sorry, an error occurred while generating feedback for this topic."
+
+    # 3. --- Return the dictionary of all feedback ---
+    return topic_feedback_results
 
 def get_long_term_feedback(all_correct_answers, all_wrong_answers):
     """

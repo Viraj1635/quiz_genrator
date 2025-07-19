@@ -1,8 +1,12 @@
 import os
+import easyocr
+import io
 from flask import Flask, request, jsonify
 from flask_cors import CORS
+import fitz
+from PIL import Image
 
-from quiz_generator import generate_quiz_questions, check_for_duplicates
+from quiz_generator import generate_quiz_questions, check_for_duplicates, generate_questions_from_text
 from quiz_feedback import get_ai_feedback, get_long_term_feedback
 
 app = Flask(__name__)
@@ -52,6 +56,74 @@ def handle_quiz_generation():
     except Exception as e:
         print(f"An unexpected error occurred: {e}")
         return jsonify({"error": "An internal server error occurred."}), 500
+
+
+@app.route("/api/generate-from-pdf", methods=['POST'])
+def handle_pdf_quiz_generation_with_ocr():
+    print("Loading OCR model into memory...")
+    ocr_reader = easyocr.Reader(['en']) # 'en' for English
+    print("OCR model loaded.")
+    """
+    Handles PDF uploads, extracts text from text layers AND images,
+    and then calls the AI logic function.
+    """
+    try:
+        if 'pdf_file' not in request.files:
+            return jsonify({"error": "No PDF file provided"}), 400
+
+        file = request.files['pdf_file']
+        if file.filename == '':
+            return jsonify({"error": "No file selected"}), 400
+
+        # --- Get quiz options from form data ---
+        num_questions = request.form.get('num_questions', 10, type=int)
+        difficulty = request.form.get('difficulty', 'Medium')
+        question_types_str = request.form.get('question_types', 'mcq')
+        question_types = [qt.strip() for qt in question_types_str.split(',')]
+        
+        # --- Extract Text and Images from PDF ---
+        pdf_document = fitz.open(stream=file.read(), filetype="pdf")
+        full_text = ""
+
+        print("Starting PDF processing...")
+        for page_num, page in enumerate(pdf_document):
+            print(f"  - Processing page {page_num + 1}...")
+            # 1. Get regular text from the page
+            full_text += page.get_text() + "\n"
+
+            # 2. Get images and perform OCR
+            for img_index, img in enumerate(page.get_images(full=True)):
+                xref = img[0]
+                base_image = pdf_document.extract_image(xref)
+                image_bytes = base_image["image"]
+                
+                # Use EasyOCR to read text from the image bytes
+                print(f"    - Performing OCR on image {img_index + 1}...")
+                ocr_results = ocr_reader.readtext(image_bytes)
+                
+                # Combine the text found by OCR
+                for (bbox, text, prob) in ocr_results:
+                    full_text += text + " "
+                full_text += "\n"
+
+        if not full_text.strip():
+            return jsonify({"error": "Could not extract any text from the PDF."}), 400
+
+        print("PDF processing complete. Sending text to AI...")
+        # --- Call the AI function from quiz_generator.py ---
+        questions = generate_questions_from_text(
+            full_text=full_text,
+            num_questions=num_questions,
+            difficulty=difficulty,
+            question_types=question_types
+        )
+        
+        return jsonify({"questions": questions})
+
+    except Exception as e:
+        print(f"An unexpected error occurred in the endpoint: {e}")
+        return jsonify({"error": f"An internal server error occurred."}), 500
+
 
 
 @app.route("/api/get-feedback", methods=['POST'])
