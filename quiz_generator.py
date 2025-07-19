@@ -55,17 +55,17 @@ def generate_quiz_questions(topic, difficulty, num_questions,question_types):
 
     1.  For "mcq" type:
         {{
-          "type": "mcq", "topic": "...", "question": "...", "options": ["...", "...", "...", "..."], "correct_answer": "...", "explanation": "..."
+          "type": "mcq", "topic": "...", "question": "...", "options": ["...", "...", "...", "..."], "correct_answer": "...", "explanation": "...","isAttemped": false
         }}
 
     2.  For "true_false" type:
         {{
-          "type": "true_false", "topic": "...", "question": "...", "options": ["True", "False"], "correct_answer": "...", "explanation": "..."
+          "type": "true_false", "topic": "...", "question": "...", "options": ["True", "False"], "correct_answer": "...", "explanation": "...","isAttemped": false
         }}
 
     3.  For "fill_in_the_blank" type:
         {{
-          "type": "fill_in_the_blank", "topic": "...", "question_parts": ["start of sentence ", " end of sentence."], "correct_answer": "word", "explanation": "..."
+          "type": "fill_in_the_blank", "topic": "...", "question_parts": ["start of sentence ", " end of sentence."], "correct_answer": "word", "explanation": "...","isAttemped": false
         }}
 
     Ensure the final output is only a single, valid JSON array.
