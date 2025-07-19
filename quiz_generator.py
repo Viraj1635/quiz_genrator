@@ -10,10 +10,10 @@ from pprint import pprint
 
 try:
     # Or, get it from your environment variables
-    api_key = 'AIzaSyBy7P_FMxdo3PWGbyi9HAHFMbOnzo4qjzM'
+    api_key = 'AIzaSyCqPaOZQS-Q7s-Reh_xChjsqbMrQiGGTko'
     if not api_key:
         # Replace this with your actual API key if not using environment variables
-        api_key = 'AIzaSyBy7P_FMxdo3PWGbyi9HAHFMbOnzo4qjzM'
+        api_key = 'AIzaSyCqPaOZQS-Q7s-Reh_xChjsqbMrQiGGTko'
         print("Warning: API key is hardcoded. It's better to use environment variables.")
     
     genai.configure(api_key=api_key)
