@@ -10,10 +10,10 @@ from pprint import pprint
 
 try:
     # Or, get it from your environment variables
-    api_key = 'AIzaSyCqPaOZQS-Q7s-Reh_xChjsqbMrQiGGTko'
+    api_key = 'AIzaSyBVECKoeu1j3ZH3kwC2Qi0B8txPrzjNibw'
     if not api_key:
         # Replace this with your actual API key if not using environment variables
-        api_key = 'AIzaSyCqPaOZQS-Q7s-Reh_xChjsqbMrQiGGTko'
+        api_key = 'AIzaSyBVECKoeu1j3ZH3kwC2Qi0B8txPrzjNibw'
         print("Warning: API key is hardcoded. It's better to use environment variables.")
     
     genai.configure(api_key=api_key)
@@ -37,7 +37,7 @@ def generate_quiz_questions(topic, difficulty, num_questions,question_types):
         list: A list of question dictionaries, or None if an error occurs.
     """
     # Create an instance of the Gemini Pro model
-    model = genai.GenerativeModel('gemini-1.5-flash-latest')
+    model = genai.GenerativeModel('gemini-2.5-flash-lite')
     
     topics_string = ", ".join(topic)
     types_str = ", ".join(question_types)
@@ -107,7 +107,7 @@ def check_for_duplicates(new_question, existing_questions):
     """
     Uses AI to check if a new question is a semantic duplicate of any existing ones.
     """
-    model = genai.GenerativeModel('gemini-1.5-flash-latest')
+    model = genai.GenerativeModel('gemini-2.5-flash-lite')
 
     # We only need the text of the questions for comparison
     new_question_text = new_question.get('question')
