@@ -137,7 +137,7 @@ def handle_long_term_feedback():
         return jsonify({"error": "An internal server error occurred."}), 500
 
 
-def generate_unique_quiz_questions(topics, difficulty, num_questions, question_types=['mcq']):
+def generate_unique_quiz_questions(topic, difficulty, num_questions, question_types=['mcq']):
     """
     Generates a list of unique quiz questions, filtering out semantic duplicates.
     """
@@ -147,7 +147,7 @@ def generate_unique_quiz_questions(topics, difficulty, num_questions, question_t
     #    This uses your existing multi-type question generation prompt.
     try:
         candidate_questions = generate_quiz_questions(
-            topics, difficulty, num_questions + 5, question_types
+            topic, difficulty, num_questions + 5, question_types
         )
         if not candidate_questions:
             print("Initial generation failed, returning empty list.")

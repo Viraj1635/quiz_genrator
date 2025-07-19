@@ -138,7 +138,6 @@ def get_ai_feedback(correct_answers, wrong_answers):
         return "Sorry, an error occurred while generating feedback."
 
 
-
 def get_long_term_feedback(all_correct_answers, all_wrong_answers):
     """
     Analyzes a user's ENTIRE history to provide balanced, long-term feedback.
